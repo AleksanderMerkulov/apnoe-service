@@ -12,8 +12,10 @@ from reportlab.platypus import SimpleDocTemplate, TableStyle, Table
 
 from .forms import UploadForm
 import os
+import numpy as np
 
 from medmed import settings
+from .net import Network
 
 
 # Create your views here.
@@ -25,9 +27,74 @@ def main_page(request):
 def instruction(request):
     return render(request, 'instruction.html')
 
-def checkFile(filepath):
-    print(filepath)
 
+def fileToASCII(filename, channel):
+    file_with_dot = f'{filename}.REC'
+    pth = f'./media/{filename}'
+    pth_with_dot = f'./media/{file_with_dot}'
+
+    print(os.path.abspath(pth))
+    os.system(f'.\Programs\EDFtoASCII\EDFToASCII.exe "{pth_with_dot}" {channel} "{pth}.txt" "{pth}.ascii" /BATCH')
+    # os.system(f'.\Programs\EDFtoASCII\EDFToASCII.exe "{file_with_dot}" {channel} "{pth}.txt" "{pth}.ascii" /BATCH')
+    # print(f'{os.path.exists()}')
+    res = []
+    with open(f'{pth}.ascii') as f:
+        for line in f.readlines():
+            res.append(float(line.strip()))
+    os.remove(f'{pth}.txt')
+    os.remove(f'{pth}.ascii')
+    return res
+
+
+def do_result(request):
+    size = 10  # не знаю почему он есть
+    n1 = Network(size)
+    n2 = Network(size)
+    try:
+        n1.loadWeights('./Progozavry/1.weights.h5')
+        n2.loadWeights('./Progozavry/2.weights.h5')
+    except:
+        HttpResponseRedirect('/err_of_work')
+        pass
+
+    pass
+    data1 = []
+    # Process the first segment
+    tr = fileToASCII(request.FILES['file'].name.split('.')[0], 3)  # get a test-set-sample
+    tr2 = []
+    rate = len(tr) // (512 * 512)
+    for i in range(0, len(tr), rate):
+        p = 0.0
+        if i + rate >= len(tr):
+            rate = len(tr) - i
+        for j in range(rate):
+            p += tr[i + j]
+        tr2.append(p / rate)
+        if len(tr2) == 512 * 512:
+            break
+    data1.append(tr2)
+    data1 = np.array(data1).reshape((-1, 512, 512, 1))
+
+
+    data2 = []
+    # Process the first segment
+    tr = fileToASCII(request.FILES['file'].name.split('.')[0], 6)  # get a test-set-sample
+    tr2 = []
+    rate = len(tr) // (512 * 512)
+    for i in range(0, len(tr), rate):
+        p = 0.0
+        if i + rate >= len(tr):
+            rate = len(tr) - i
+        for j in range(rate):
+            p += tr[i + j]
+        tr2.append(p / rate)
+        if len(tr2) == 512 * 512:
+            break
+    data2.append(tr2)
+    data2 = np.array(data2).reshape((-1, 512, 512, 1))
+    net1_response = n1.predict(data1)
+    net2_response = n2.predict(data2)
+    return [net1_response, net2_response]
 
 
 def file_handler(file):
@@ -51,11 +118,18 @@ def upload_file(request):
     if request.method == 'POST':
         form = UploadForm(request.POST, request.FILES)
         if form.is_valid():
-            file_handler(request.FILES['file'])
+            file_handler(request.FILES['file'])  # upload file to server
+            # test_sample = fileToASCII(request.FILES['file'].name.split('.')[0], 3)  # get a test-set-sample
 
+            result = do_result(request)
+            # result = [[1, 0][1, 0]]
 
-            apnoe = None
+            # print(result)
+            # Получение результатов.
+            apnoe = (result[0][0] + result[1][0] / 2)
             apnoe_type = None
+
+            # Передача результатов для рендера на странице.
             context = {
                 'apnoe': apnoe,
                 'apnoe_type': apnoe_type,
@@ -68,11 +142,10 @@ def upload_file(request):
             return HttpResponseRedirect('/err_load_file')
     else:
         form = UploadForm()
-        return render(request, 'form.html', {'form':form})
+        return render(request, 'form.html', {'form': form})
 
 
 def save_result(request):
-
     # получаем параметры из запроса на сохранение файла
     params = request.GET.items()
 
@@ -100,11 +173,11 @@ def save_result(request):
     # Создание таблицы с данными
     table = Table(table_data, repeatRows=1)
     table.setStyle(TableStyle([
-                               ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
-                               ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                               ('FONTNAME', (0, 0), (-1, -1), 'Arial'),
-                               ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                               ]))
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Arial'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+    ]))
 
     # Добавление таблицы в элементы PDF
     elements.append(table)
