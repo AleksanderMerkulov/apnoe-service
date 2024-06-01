@@ -1,6 +1,21 @@
-<form method="post" enctype="multipart/form-data">
+{% extends 'index.html' %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="load-file">
     {% csrf_token %}
+{#    <div class="file-input">#}
+{#        <div class="file-input__title">Информация по загрузке</div>#}
+{#        <div class="file-upload">#}
+{#                {{ form.as_p }}#}
+{#                <div class="file-input__upload">#}
+{#                    Загрузить#}
+{#                </div>#}
+{#        </div>#}
+{#    </div>#}
+
     {{ form.as_p }}
-    <button type="submit">Загрузить</button>
+
+    <button type="submit" class="btn btn-success">Загрузить</button>
 
 </form>
+{% endblock %}

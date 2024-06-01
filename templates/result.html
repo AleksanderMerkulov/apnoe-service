@@ -1,0 +1,26 @@
+{% extends 'index.html' %}
+
+
+{% block content %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">Название файла</th>
+            <th scope="col">АПНОЭ</th>
+            <th scope="col">Степень</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>{{ filename }}</td>
+            <td>Обнаружено</td>
+            <td>Слабая</td>
+        </tr>
+        <tr>
+            <td>
+                <a href="/save_result/?Апное={{ apnoe }}&Тип={{ apnoe_type }}&Файл={{ filename }}" class="btn btn-primary">Сохранить результат</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+{% endblock %}

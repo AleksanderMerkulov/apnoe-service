@@ -1,0 +1,30 @@
+.load-file{
+    width: 300px;
+    margin: 0 auto;
+}
+
+.file-input{
+    box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.file-input__title{
+
+}
+
+.file-upload{
+    position: relative;
+
+}
+
+.file-upload p{
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.file-input__upload{
+    width: 300px;
+    background: green;
+
+}
