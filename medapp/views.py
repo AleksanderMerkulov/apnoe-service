@@ -21,11 +21,27 @@ from .net import Network
 # Create your views here.
 
 def main_page(request):
-    return render(request, 'index.html')
+    return render(request, 'tizer.html')
 
 
 def instruction(request):
     return render(request, 'instruction.html')
+
+
+def getApnoeIndex(results, path):
+    import scipy
+
+    y = np.array(results)
+    b, a = scipy.signal.butter(3, 0.9, 'low')
+    out = scipy.signal.filtfilt(b, a, y)
+    freq = 0
+    with open(path) as f1:
+        for line in f1.readlines():
+            splat = line.split(':')
+            if splat[0] == '"SampleFrequency':
+                freq = int(splat[1].split('Hz')[0])
+                break
+    return len(scipy.signal.find_peaks(out)[0]) * freq / len(y)
 
 
 def fileToASCII(filename, channel):
@@ -41,9 +57,13 @@ def fileToASCII(filename, channel):
     with open(f'{pth}.ascii') as f:
         for line in f.readlines():
             res.append(float(line.strip()))
+
+    # get an apnoe index for later use
+    index = getApnoeIndex(res, f'{pth}.txt')
+
     os.remove(f'{pth}.txt')
     os.remove(f'{pth}.ascii')
-    return res
+    return [res, index]
 
 
 def do_result(request):
@@ -61,6 +81,9 @@ def do_result(request):
     data1 = []
     # Process the first segment
     tr = fileToASCII(request.FILES['file'].name.split('.')[0], 3)  # get a test-set-sample
+    apnoe_index1 = tr[1]  # get an apnoe_index from getApnoeIndex
+    tr = tr[0]  # reform tr to tr correct GAVNOKOD - do refactor this one
+
     tr2 = []
     rate = len(tr) // (512 * 512)
     for i in range(0, len(tr), rate):
@@ -79,6 +102,8 @@ def do_result(request):
     data2 = []
     # Process the first segment
     tr = fileToASCII(request.FILES['file'].name.split('.')[0], 6)  # get a test-set-sample
+    apnoe_index2 = tr[1]  # get an apnoe_index from getApnoeIndex
+    tr = tr[0]  # reform tr to correct tr GAVNOKOD - do refactor this one
     tr2 = []
     rate = len(tr) // (512 * 512)
     for i in range(0, len(tr), rate):
@@ -94,7 +119,7 @@ def do_result(request):
     data2 = np.array(data2).reshape((-1, 512, 512, 1))
     net1_response = n1.predict(data1)
     net2_response = n2.predict(data2)
-    return [net1_response, net2_response]
+    return [net1_response, net2_response, [apnoe_index1, apnoe_index2]]
 
 
 def file_handler(file):
@@ -126,14 +151,32 @@ def upload_file(request):
 
             # print(result)
             # Получение результатов.
-            apnoe = (result[0][0] + result[1][0] / 2)
-            apnoe_type = None
+            apnoe = ((result[0][1] + result[1][1]) / 2)  # veroiatnost chto eto apnoe
+            apnoe_index = ((result[2][1] + result[2][1]) / 2)
+            apnoe_type = ''
+            if 15 > apnoe_index >= 5:
+                apnoe_type = 'Легкая'
+            elif 30 > apnoe_index >= 15:
+                apnoe_type = 'Средняя'
+            elif apnoe_index >= 30:
+                apnoe_type = 'Тяжёлая'
+
+            apnoe_detect = ''
+            if apnoe <= 5:
+                apnoe_detect = "Отсутствует"
+                apnoe_type = '-'
+            elif 95 > apnoe > 5:
+                apnoe_detect = 'Возможно присутствует'
+            elif apnoe >= 95:
+                apnoe_detect = 'Обнаружено'
+
 
             # Передача результатов для рендера на странице.
             context = {
                 'apnoe': apnoe,
                 'apnoe_type': apnoe_type,
-                'filename': request.FILES['file'].name
+                'filename': request.FILES['file'].name,
+                'apnoe_detect': apnoe_detect
             }
 
             return render(request, 'result.html', context)

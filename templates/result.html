@@ -7,18 +7,20 @@
         <tr>
             <th scope="col">Название файла</th>
             <th scope="col">АПНОЭ</th>
+            <th scope="col">АПНОЭ(вероятность)</th>
             <th scope="col">Степень</th>
         </tr>
         </thead>
         <tbody>
         <tr>
             <td>{{ filename }}</td>
+            <td>{{ apnoe_detect }}</td>
             <td>{{ apnoe }}</td>
-            <td>Слабая</td>
+            <td>{{ apnoe_type }}</td>
         </tr>
         <tr>
             <td>
-                <a href="/save_result/?Апное={{ apnoe }}&Тип={{ apnoe_type }}&Файл={{ filename }}" class="btn btn-primary">Сохранить результат</a>
+                <a href="/save_result/?Файл={{ filename }}&Обнаружено={{ apnoe_detect }}&Апное={{ apnoe }}&Тип={{ apnoe_type }}" class="btn btn-primary">Сохранить результат</a>
             </td>
         </tr>
         </tbody>
