@@ -28,7 +28,14 @@ SECRET_KEY = 'django-insecure-sz(5tv=d(1b%v1mw5ix2+qghpob%!7#4^1i^j_i2t_y0+25q9-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['cuddly-firstly-mollusk.ngrok-free.app', '127.0.0.1']
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://cuddly-firstly-mollusk.ngrok-free.app',
+    'http://127.0.0.1',
+    'https://cuddly-firstly-mollusk.ngrok-free.app',
+    'https://127.0.0.1',
+]
 
 
 # Application definition

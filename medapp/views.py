@@ -151,7 +151,7 @@ def upload_file(request):
 
             # print(result)
             # Получение результатов.
-            apnoe = ((result[0][1] + result[1][1]) / 2)  # veroiatnost chto eto apnoe
+            apnoe = round(((result[0][1] + result[1][1]) / 2), 4)  # veroiatnost chto eto apnoe
             apnoe_index = ((result[2][1] + result[2][1]) / 2)
             apnoe_type = ''
             if 15 > apnoe_index >= 5:
@@ -162,12 +162,12 @@ def upload_file(request):
                 apnoe_type = 'Тяжёлая'
 
             apnoe_detect = ''
-            if apnoe <= 5:
+            if apnoe <= 0.05:
                 apnoe_detect = "Отсутствует"
                 apnoe_type = '-'
-            elif 95 > apnoe > 5:
+            elif 0.95 > apnoe > 0.05:
                 apnoe_detect = 'Возможно присутствует'
-            elif apnoe >= 95:
+            elif apnoe >= 0.95:
                 apnoe_detect = 'Обнаружено'
 
 
