@@ -1,0 +1,4 @@
+This EDF-to-ASCII converter for Windows was made by Marco Roessen. It exports one of the signals in an ASCII file and all EDF header information about this signal in an additional textfile. This latter textfile also tells how to derive the physi(ologi)cal signal amplitude from the ASCII values by using the calibration info from the EDF header. The formula for this derivation is:
+Physical value (dimension PhysiDim) = (ASCIIvalue-DigiMin)*(PhysiMax-PhysiMin)/(DigiMax-DigiMin) + PhysiMin.
+
+This program may be copied and distributed freely, but must not be altered. New releases might be found at www.edfplus.info.

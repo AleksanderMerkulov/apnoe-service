@@ -82,7 +82,7 @@ def do_result(request):
     # Process the first segment
     tr = fileToASCII(request.FILES['file'].name.split('.')[0], 3)  # get a test-set-sample
     apnoe_index1 = tr[1]  # get an apnoe_index from getApnoeIndex
-    tr = tr[0]  # reform tr to tr correct GAVNOKOD - do refactor this one
+    tr = tr[0]
 
     tr2 = []
     rate = len(tr) // (512 * 512)
